@@ -1,0 +1,40 @@
+name: Shorty Memory checks
+
+on:
+  push:
+    paths:
+      - "shorty-memory/**"
+      - ".github/workflows/shorty-check.yml"
+  pull_request:
+    paths:
+      - "shorty-memory/**"
+      - ".github/workflows/shorty-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Check JavaScript syntax
+        run: |
+          node --check shorty-memory/app.js
+          node --check shorty-memory/config.js
+      - name: Verify required files
+        run: |
+          test -s shorty-memory/index.html
+          test -s shorty-memory/styles.css
+          test -s shorty-memory/app.js
+          test -s shorty-memory/config.js
+          test -s shorty-memory/README.md
+          test -s shorty-memory/supabase/schema.sql
+          grep -q './config.js' shorty-memory/index.html
+          grep -q './app.js' shorty-memory/index.html
