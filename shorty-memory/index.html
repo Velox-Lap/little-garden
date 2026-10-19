@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11130f">
+  <meta name="description" content="A tiny digital universe for memories, letters, and two people.">
+  <title>shorty.memory — a little universe for two</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+  <main id="bootScreen" class="boot-screen">
+    <div class="boot-topbar"><span class="brand-mark">S/M</span><span>SHORTY.MEMORY // SYSTEM TERMINAL</span><span class="top-status"><i></i> SYSTEM ONLINE</span></div>
+    <section class="terminal-window" aria-label="Retro terminal">
+      <div class="terminal-titlebar"><div class="window-dots"><b></b><b></b><b></b></div><span>memories.exe — zsh — 80×24</span><button id="terminalHelp" class="tiny-btn" type="button" aria-label="Show commands">?</button></div>
+      <div class="terminal-body">
+        <pre class="ascii-logo" aria-label="Shorty Memory logo">       .-----------------------.
+       |  SHORTY.MEMORY v1.0.26 |
+       '-----------------------'
+       _  _   ___   _  _  ___
+      | || | / _ \ | || |/ __|
+      | __ || (_) || __ |\__ \
+      |_||_| \___/ |_||_||___/</pre>
+        <p class="terminal-intro">A tiny universe for two people.<br><span>Some things are better kept in memory.</span></p>
+        <div id="terminalOutput" class="terminal-output" aria-live="polite">
+          <p><span class="term-muted">[BOOT]</span> Initializing memory core... <span class="term-ok">OK</span></p>
+          <p><span class="term-muted">[BOOT]</span> Checking the soft things... <span class="term-ok">FOUND</span></p>
+          <p class="term-hint">Type <code>help</code> to see available commands.</p>
+        </div>
+        <form id="terminalForm" class="terminal-prompt" autocomplete="off">
+          <label for="terminalInput"><span class="prompt-label">guest@shorty:~$</span></label>
+          <input id="terminalInput" name="command" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="type a command..." aria-label="Terminal command">
+          <button class="send-command" type="submit" aria-label="Run command">↵</button>
+        </form>
+        <div class="terminal-footer"><span>UTF-8</span><span>NO BAD DAYS — ONLY DEBUGGING</span><span>ESC / HELP</span></div>
+      </div>
+    </section>
+    <p class="boot-note">A private little corner of the internet, made with care.</p>
+  </main>
+
+  <dialog id="authDialog" class="auth-dialog">
+    <div class="auth-head"><span class="eyebrow">IDENTITY CHECK // 01</span><button class="icon-btn" type="button" data-close-auth aria-label="Close">×</button></div>
+    <div class="auth-brand"><span class="brand-mark">S/M</span><div><h2>Welcome back, human.</h2><p>Your memories are waiting on the other side.</p></div></div>
+    <div class="auth-tabs"><button type="button" class="auth-tab is-active" data-auth-tab="login">Log in</button><button type="button" class="auth-tab" data-auth-tab="register">Create account</button></div>
+    <form id="loginForm" class="auth-form">
+      <label>Email address<input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters" required></label>
+      <button class="primary-btn" type="submit">Enter the universe <span>↗</span></button>
+      <p class="form-note" id="loginNote">Sign in to continue.</p>
+    </form>
+    <form id="registerForm" class="auth-form hidden">
+      <label>Display name<input name="displayName" type="text" maxlength="32" autocomplete="nickname" placeholder="What should we call you?" required></label>
+      <label>Username<input name="username" type="text" minlength="3" maxlength="18" pattern="[A-Za-z0-9_.-]+" autocomplete="username" placeholder="letters, numbers, . _ -" required></label>
+      <label>Email address<input name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label>
+      <label>Password<input name="password" type="password" minlength="6" autocomplete="new-password" placeholder="At least 6 characters" required></label>
+      <button class="primary-btn" type="submit">Create my space <span>↗</span></button>
+      <p class="form-note" id="registerNote">Use a unique username. In demo mode, the account stays in this browser only.</p>
+    </form>
+    <div class="auth-divider"><span>OR TRY THE PREVIEW</span></div>
+    <button id="guestButton" type="button" class="ghost-btn">Continue as a demo guest <span>→</span></button>
+    <p class="privacy-note">Never enter a password you use on another website. Demo mode is for preview only; configure Supabase for real accounts.</p>
+  </dialog>
+
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <a class="side-logo" href="#" data-section="home"><span class="brand-mark">S/M</span><span><b>shorty.memory</b><small>OUR LITTLE UNIVERSE</small></span></a>
+      <div class="side-label">WORKSPACE</div>
+      <nav class="side-nav" aria-label="Main navigation">
+        <button class="nav-item is-active" type="button" data-section="home"><span class="nav-icon">⌂</span><span>Dashboard</span></button>
+        <button class="nav-item" type="button" data-section="friends"><span class="nav-icon">♧</span><span>People & friends</span><span id="friendBadge" class="nav-badge hidden">0</span></button>
+        <button class="nav-item" type="button" data-section="pair"><span class="nav-icon">∞</span><span>Pair link</span></button>
+        <button class="nav-item" type="button" data-section="memories"><span class="nav-icon">▧</span><span>Memory vault</span></button>
+        <button class="nav-item" type="button" data-section="letters"><span class="nav-icon">✉</span><span>Open when…</span></button>
+        <button class="nav-item" type="button" data-section="profile"><span class="nav-icon">◉</span><span>My profile</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sync-card"><span class="sync-dot"></span><div><b id="syncLabel">LOCAL PREVIEW</b><small id="syncDetail">Data stays in this browser</small></div></div>
+        <button id="logoutButton" type="button" class="logout-btn"><span>↪</span> Log out</button>
+        <div class="side-version">BUILD 01.26 <span>·</span> MADE WITH CARE</div>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <header class="workspace-topbar">
+        <div class="breadcrumb"><span>SPACE /</span> <b id="crumbLabel">DASHBOARD</b></div>
+        <div class="top-actions"><span class="clock-label" id="todayLabel"></span><button id="topProfileButton" class="mini-profile" type="button" data-section="profile"><img id="topAvatar" alt="" src=""><span id="topUsername">guest</span><span class="chevron">⌄</span></button></div>
+      </header>
+      <div id="viewRoot" class="view-root" tabindex="-1"></div>
+      <footer class="app-footer"><span>SHORTY.MEMORY © 2026</span><span>KEEP THE GOOD THINGS CLOSE.</span><button type="button" id="backToTerminal">↖ TERMINAL</button></footer>
+    </section>
+  </div>
+
+  <button id="mascotButton" class="mascot-button hidden" type="button" aria-label="Talk to Shorty"><span class="mascot-spark">✦</span><span class="pixel-cat" aria-hidden="true">ฅ^•ﻌ•^ฅ</span></button>
+  <div id="mascotBubble" class="mascot-bubble hidden" role="status"><button id="closeMascotBubble" type="button" aria-label="Close">×</button><span class="eyebrow">SHORTY.EXE</span><p id="mascotMessage">System message: you are doing better than you think.</p><button id="newMascotMessage" type="button" class="text-btn">another message ↻</button></div>
+
+  <dialog id="letterDialog" class="letter-dialog">
+    <div class="letter-dialog-top"><span class="eyebrow">A MESSAGE, SAVED FOR YOU</span><button class="icon-btn" type="button" data-close-letter aria-label="Close letter">×</button></div>
+    <div class="envelope-art" aria-hidden="true"><div class="envelope-paper">S/M</div><div class="envelope-flap"></div></div>
+    <p id="letterTag" class="letter-tag">OPEN WHEN YOU NEED A PAUSE</p>
+    <h2 id="letterTitle">A little note for you.</h2>
+    <p id="letterMessage" class="letter-message"></p>
+    <div class="letter-signoff">with care, <span>always.</span></div>
+    <button type="button" class="primary-btn" data-close-letter>Keep this close <span>♡</span></button>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <input id="avatarFileInput" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp">
+  <input id="memoryFileInput" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+</body>
+</html>
